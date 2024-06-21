@@ -43,7 +43,7 @@ type ParsedEvent = z.infer<typeof EventSchema>;
 
 async function handleMetadataEvent(event: ParsedEvent) {
   const profile = ProfileSchema.parse(JSON.parse(event.content));
-
+  console.log("Attempting to add", profile);
   const user = await prisma.user.upsert({
     where: {
       pubkey: event.pubkey,
@@ -60,7 +60,17 @@ async function handleMetadataEvent(event: ParsedEvent) {
         },
       },
     },
-    update: profile,
+    update: {
+      ...profile,
+      event: {
+        connectOrCreate: {
+          where: {
+            id: event.id,
+          },
+          create: event,
+        },
+      },
+    },
   });
   const isCalendar = CalendarSchema.safeParse(event);
   if (isCalendar.success) {

@@ -97,6 +97,7 @@ export async function addCalendar(event: Event) {
   const content = JSON.parse(parsedCalendar.content) as { name: string } & {
     [key: string]: string;
   };
+  console.log("attempting to add calendar");
   const calendar = await prisma.user.upsert({
     where: {
       pubkey: event.pubkey,
