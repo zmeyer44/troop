@@ -21,9 +21,10 @@ import { RsvpStatus, prisma } from "@repo/database";
 import { EventSchema, ProfileSchema } from "@repo/utils";
 
 export async function addEvent(rawEvent: NostrEvent) {
+  console.log("At add event Raw", rawEvent);
   const event = EventSchema.parse(rawEvent);
   const { kind } = event;
-
+  console.log("At add event", event);
   switch (kind) {
     case NDKKind.Metadata:
       return handleMetadataEvent(event);

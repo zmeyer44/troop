@@ -84,7 +84,7 @@ async function main() {
         if (!event) return;
         await addEvent(event);
       } catch (err) {
-        console.error("processLoop error", err);
+        console.error("processLoop error", JSON.stringify(err));
       }
     };
 
