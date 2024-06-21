@@ -1,7 +1,7 @@
 import { Event, nip19 } from "nostr-tools";
 import { getTag, getTags, slugify, removeDuplicates } from "../utils";
 import { CalendarEventSchema, CalendarSchema, EventSchema } from "../schemas";
-import { prisma } from "@troop/db";
+import { prisma } from "@repo/database";
 
 export async function addCalendarEvent(event: Event) {
   const parsedEvent = EventSchema.parse(event);
