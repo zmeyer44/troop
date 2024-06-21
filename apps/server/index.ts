@@ -78,10 +78,14 @@ async function main() {
     }
 
     const processLoop = async () => {
-      if (eventsToProcess.length === 0) return;
-      const event = eventsToProcess.pop();
-      if (!event) return;
-      await addEvent(event);
+      try {
+        if (eventsToProcess.length === 0) return;
+        const event = eventsToProcess.pop();
+        if (!event) return;
+        await addEvent(event);
+      } catch (err) {
+        console.error("processLoop error", err);
+      }
     };
 
     setInterval(() => {
