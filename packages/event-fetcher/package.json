@@ -1,0 +1,31 @@
+{
+  "name": "@repo/event-fetcher",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "source": "./index.ts",
+  "scripts": {
+    "clean": "rm -rf .turbo && rm -rf node_modules",
+    "lint": "eslint . --quiet"
+  },
+  "dependencies": {
+    "@nostr-dev-kit/ndk": "^2.8.1",
+    "@repo/database": "workspace:*",
+    "@repo/utils": "workspace:*",
+    "crypto": "^1.0.1",
+    "drizzle-orm": "0.29.4",
+    "express": "^4.19.2",
+    "nostr-tools": "^2.5.1",
+    "websocket-polyfill": "^0.0.3",
+    "websocket-ts": "^2.1.5",
+    "ws": "^8.17.0",
+    "zod": "^3.23.7",
+    "pino": "8.10.0"
+  },
+  "devDependencies": {
+    "pino-pretty": "9.2.0",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.12.12",
+    "eslint": "^9.2.0",
+    "typescript": "^5.4.5"
+  }
+}

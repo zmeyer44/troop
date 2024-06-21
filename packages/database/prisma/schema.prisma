@@ -1,20 +1,193 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
-  referentialIntegrity = "prisma"
-}
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["referentialIntegrity"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id            String         @id @db.Char(64)
+  pubkey        String         @db.Char(64)
+  kind          Int
+  tags          Json[]
+  content       String
+  sig           String         @db.Char(128)
+  created_at    Int
+  user          User?
+  calendarEvent CalendarEvent?
+  rsvp          Rsvp?
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
+  pubkey   String    @id @db.Char(64)
+  name     String
+  picture  String?
+  banner   String?
+  about    String?
+  nip05    String?
+  lud16    String?
+  lud06    String?
+  event    Event?    @relation(fields: [eventId], references: [id])
+  eventId  String?   @unique @db.Char(64)
+  calendar Calendar?
+}
+
+model Calendar {
+  pubkey String @id @db.Char(64)
+  user   User   @relation(fields: [pubkey], references: [pubkey])
+}
+
+model CalendarEvent {
+  id          Int     @id @default(autoincrement())
+  identifier  String
+  pubkey      String  @db.Char(64)
+  title       String
+  image       String?
+  description String?
+  start       Int
+  end         Int?
+  location    String?
+  geohash     String?
+  bech32      String  @unique
+  slug        String?
+  event       Event   @relation(fields: [eventId], references: [id])
+  eventId     String  @unique @db.Char(64)
+  place       Place?  @relation(fields: [placeId], references: [id])
+  placeId     Int?
+  tags        Tag[]
+  rsvps       Rsvp[]
+
+  @@unique([pubkey, identifier])
+}
+
+enum RsvpStatus {
+  INVITED
+  DECLINED
+  TENTATIVE
+  ACTIVE
+  INACTIVE
+}
+
+model Rsvp {
+  id         Int        @id @default(autoincrement())
+  identifier String
+  pubkey     String     @db.Char(64)
+  status     RsvpStatus @default(ACTIVE)
+  approved   Boolean?
+  paid       Boolean?
+  payment    Json?
+  isWaitlist Boolean    @default(false)
+  type       String?
+
+  calendarEvent           CalendarEvent @relation(fields: [calendarEventPubkey, calendarEventIdentifier], references: [pubkey, identifier])
+  calendarEventPubkey     String        @db.Char(64)
+  calendarEventIdentifier String
+
+  event   Event  @relation(fields: [eventId], references: [id])
+  eventId String @unique @db.Char(64)
+
+  @@unique([pubkey, identifier])
+}
+
+model Place {
+  id             Int             @id @default(autoincrement())
+  slug           String          @unique
+  name           String
+  description    String
+  image          String
+  calendarEvents CalendarEvent[]
+}
+
+model Tag {
+  id             Int             @id @default(autoincrement())
+  value          String          @unique
+  label          String
+  calendarEvents CalendarEvent[]
+}
+
+// Auth Stuff
+enum UserRoles {
+  OWNER
+  ADMIN
+  EDITOR
+}
+
+model AuthRole {
+  pubkey       String    @db.Char(64)
+  targetPubkey String    @db.Char(64)
+  target       AuthUser  @relation(fields: [targetPubkey], references: [pubkey])
+  role         UserRoles @default(OWNER)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@id([pubkey, targetPubkey])
+}
+
+enum AuthUserType {
+  USER
+  CALENDAR
+}
+
+model AuthUser {
+  id            String       @id @default(cuid())
+  pubkey        String       @unique
+  encryptedNsec String?
+  email         String?
   emailVerified DateTime?
+  password      String?
+  image         String?
+  type          AuthUserType @default(USER)
+  accounts      Account[]
+  sessions      Session[]
+  userRoles     AuthRole[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
 }
