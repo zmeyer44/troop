@@ -43,7 +43,7 @@ async function main() {
     const eventStore = await ndk
       .subscribe(
         {
-          kinds: [NDKKind.Metadata, 31923, 31925] as NDKKind[],
+          kinds: [31923 as NDKKind, 31925] as NDKKind[],
           since: unixTimeNowInSeconds() - 5 * 60,
         },
         { closeOnEose: false },
