@@ -1,6 +1,7 @@
 {
   "extends": "@repo/typescript-config/nextjs.json",
   "compilerOptions": {
+    "module": "esnext",
     "baseUrl": ".",
     "skipLibCheck": true,
     "paths": {
@@ -15,5 +16,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts"
   ],
+  "files": ["global.d.ts"],
   "exclude": ["node_modules"]
 }
