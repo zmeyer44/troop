@@ -45,7 +45,7 @@ export default function NDKInstance(explicitRelayUrls: string[]) {
       }
 
       // return all online relays
-      return [...onlineRelays];
+      return Array.from(onlineRelays);
     } catch (e) {
       console.error(e);
     }
