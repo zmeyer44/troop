@@ -95,7 +95,7 @@ async function main() {
       console.log(`Example app listening on port ${PORT}`);
     });
   } catch (err) {
-    console.log("Error", err);
+    console.log("Error in main", err);
   }
 }
 main();
