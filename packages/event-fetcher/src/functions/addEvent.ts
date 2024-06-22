@@ -22,20 +22,16 @@ import { EventSchema, ProfileSchema } from "@repo/utils";
 
 export async function addEvent(rawEvent: NostrEvent) {
   try {
-    console.log("At add event Raw", rawEvent);
     const event = EventSchema.parse(rawEvent);
     const { kind } = event;
     console.log("At add event", event);
     switch (kind) {
       case NDKKind.Metadata:
         return handleMetadataEvent(event);
-
       case 31923:
         return handleCalendarEvent(event);
-
       case 31925:
         return handleRsvpEvent(event);
-
       default:
         return null;
     }
@@ -94,7 +90,7 @@ async function handleMetadataEvent(event: ParsedEvent) {
   return user;
 }
 async function handleCalendarEvent(event: ParsedEvent) {
-  const calendarEvent = CalendarEventSchema.parse(JSON.parse(event.content));
+  const calendarEvent = CalendarEventSchema.parse(event);
 
   const identifier = getTag(event.tags, "d", 1) as string;
   const hashtags = getTags(event.tags, "t", 1);
@@ -181,8 +177,7 @@ async function handleCalendarEvent(event: ParsedEvent) {
   return createdCalendarEvent;
 }
 async function handleRsvpEvent(event: ParsedEvent) {
-  const rsvpEvent = RsvpSchema.parse(JSON.parse(event.content));
-
+  const rsvpEvent = RsvpSchema.parse(event);
   const status = (getTag(event.tags, "status", 1) ??
     getTag(event.tags, "l", 1)) as "accepted" | "declined" | "tentative";
   const identifier = getTag(event.tags, "d", 1) as string;
