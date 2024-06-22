@@ -123,7 +123,7 @@ export default async function Page({ params }: PageProps) {
             </h1>
           </div>
           {/* Hosts */}
-          <div className="@2xl/main:hidden">
+          <div className="@2xl/main:hidden mb-1 space-y-1">
             <div className="flex items-center">
               <h3 className="text-muted-foreground font-semibold">Hosted by</h3>
             </div>
