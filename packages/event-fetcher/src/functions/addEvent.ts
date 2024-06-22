@@ -177,7 +177,10 @@ async function handleCalendarEvent(event: ParsedEvent) {
   return createdCalendarEvent;
 }
 async function handleRsvpEvent(event: ParsedEvent) {
+  console.log("handleRsvpEvent", event);
   const rsvpEvent = RsvpSchema.parse(event);
+  console.log("passed!");
+
   const status = (getTag(event.tags, "status", 1) ??
     getTag(event.tags, "l", 1)) as "accepted" | "declined" | "tentative";
   const identifier = getTag(event.tags, "d", 1) as string;
