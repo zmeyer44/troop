@@ -21,22 +21,26 @@ import { RsvpStatus, prisma } from "@repo/database";
 import { EventSchema, ProfileSchema } from "@repo/utils";
 
 export async function addEvent(rawEvent: NostrEvent) {
-  console.log("At add event Raw", rawEvent);
-  const event = EventSchema.parse(rawEvent);
-  const { kind } = event;
-  console.log("At add event", event);
-  switch (kind) {
-    case NDKKind.Metadata:
-      return handleMetadataEvent(event);
+  try {
+    console.log("At add event Raw", rawEvent);
+    const event = EventSchema.parse(rawEvent);
+    const { kind } = event;
+    console.log("At add event", event);
+    switch (kind) {
+      case NDKKind.Metadata:
+        return handleMetadataEvent(event);
 
-    case 31923:
-      return handleCalendarEvent(event);
+      case 31923:
+        return handleCalendarEvent(event);
 
-    case 31925:
-      return handleRsvpEvent(event);
+      case 31925:
+        return handleRsvpEvent(event);
 
-    default:
-      return null;
+      default:
+        return null;
+    }
+  } catch (err) {
+    console.log("Error adding event");
   }
 }
 
@@ -179,10 +183,8 @@ async function handleCalendarEvent(event: ParsedEvent) {
 async function handleRsvpEvent(event: ParsedEvent) {
   const rsvpEvent = RsvpSchema.parse(JSON.parse(event.content));
 
-  const status = getTag(event.tags, "status", 1) as
-    | "accepted"
-    | "declined"
-    | "tentative";
+  const status = (getTag(event.tags, "status", 1) ??
+    getTag(event.tags, "l", 1)) as "accepted" | "declined" | "tentative";
   const identifier = getTag(event.tags, "d", 1) as string;
   const a = getTag(event.tags, "a");
   const [key, address, relay] = a as [

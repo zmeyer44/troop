@@ -63,13 +63,21 @@ export const RsvpSchema = z.object({
         if (!a) return false;
         const aParts = a.split(":");
         const status = getTag(tags, "status", 1);
+        const L = getTag(tags, "L", 1);
+        const l = getTag(tags, "l");
         const statusOptions = ["accepted", "declined", "tentative"];
-        return !!(
-          hasDTag &&
-          aParts.length === 3 &&
-          status &&
-          statusOptions.includes(status)
-        );
+        let passingStatus = false;
+        if (status && statusOptions.includes(status)) {
+          passingStatus = true;
+        } else if (
+          L === "status" &&
+          l &&
+          l[2] === "status" &&
+          statusOptions.includes(l[1] as string)
+        ) {
+          passingStatus = true;
+        }
+        return !!(hasDTag && aParts.length === 3 && passingStatus);
       },
       {
         message: "Missing needed tags",
