@@ -124,10 +124,10 @@ export default async function Page({ params }: PageProps) {
           </div>
           {/* Hosts */}
           <div className="@2xl/main:hidden">
-            <CalendarLink event={event} />
             <div className="flex items-center">
               <h3 className="text-muted-foreground font-semibold">Hosted by</h3>
             </div>
+            <CalendarLink event={event} />
           </div>
           {/* Date and Location */}
           <div className="">

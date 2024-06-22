@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev-olli": "next dev",
+    "dev-web": "next dev",
     "build-olli": "next build",
     "build": "next build",
     "start": "next start",

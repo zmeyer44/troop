@@ -10,6 +10,7 @@
     "db:push": "turbo run db:push",
     "db:seed": "turbo run db:seed",
     "dev": "turbo run dev",
+    "dev-web": "turbo run dev-web",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "generate": "turbo run generate",
     "lint": "turbo run lint"
