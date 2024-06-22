@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "display": "Next.js",
-  "extends": "./base.json",
+  "extends": "./next-base.json",
   "compilerOptions": {
     "plugins": [{ "name": "next" }],
     "module": "ESNext",
@@ -9,7 +9,5 @@
     "allowJs": true,
     "jsx": "preserve",
     "noEmit": true
-  },
-  "include": ["src", "next-env.d.ts"],
-  "exclude": ["node_modules"]
+  }
 }
