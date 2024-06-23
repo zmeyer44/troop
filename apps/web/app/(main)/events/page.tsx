@@ -16,7 +16,7 @@ async function getEvents() {
     orderBy: {
       start: "asc",
     },
-    take: 50,
+    take: 100,
     include: {
       tags: true,
     },
