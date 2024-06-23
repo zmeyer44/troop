@@ -3,7 +3,7 @@ import EventCard from "./components/eventCard";
 import Link from "next/link";
 import { prisma } from "@repo/database";
 
-export default async function Page() {
+async function getEvents() {
   const eventsReceived = await prisma.calendarEvent.findMany({
     where: {
       start: {
@@ -21,7 +21,13 @@ export default async function Page() {
       tags: true,
     },
   });
+  return eventsReceived;
+}
 
+export const revalidate = 3600; // revalidate at most every hour
+
+export default async function Page() {
+  const eventsReceived = await getEvents();
   return (
     <div className="flex-1 overflow-x-hidden">
       <div className="">
