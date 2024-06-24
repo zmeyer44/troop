@@ -28,6 +28,7 @@ export const revalidate = 3600; // revalidate at most every hour
 
 export default async function Page() {
   const eventsReceived = await getEvents();
+
   return (
     <div className="flex-1 overflow-x-hidden">
       <div className="">
