@@ -5,7 +5,8 @@ import Sidebar from "../components/sidebar";
 import TabsSorter from "./components/tabsSorter";
 import EventCard from "../events/components/eventCard";
 import { prisma } from "@repo/database";
-export default async function Page() {
+
+async function getEvents() {
   const eventsReceived = await prisma.calendarEvent.findMany({
     where: {
       start: {
@@ -18,11 +19,18 @@ export default async function Page() {
     orderBy: {
       start: "asc",
     },
-    take: 50,
+    take: 100,
     include: {
       tags: true,
     },
   });
+  return eventsReceived;
+}
+
+export const revalidate = 3600; // revalidate at most every hour
+
+export default async function Page() {
+  const eventsReceived = await getEvents();
 
   return (
     <div className="relative flex w-full flex-1 justify-center">
