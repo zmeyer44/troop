@@ -1,0 +1,47 @@
+{
+  "name": "bunker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "engines": {
+    "node": "18.x"
+  },
+  "scripts": {
+    "dev-bunker": "ts-node-dev --transpile-only --ignore-watch node_modules --loader ts-node/esm index.ts",
+    "dev": "cross-env NODE_PATH=. ts-node-dev --transpile-only --require dotenv/config index.ts",
+    "start": "cross-env NODE_PATH=dist node dist/index.js",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm *.tsbuildinfo",
+    "lint": "eslint . --quiet"
+  },
+  "dependencies": {
+    "@fastify/formbody": "^7.4.0",
+    "@fastify/view": "^9.1.0",
+    "@nostr-dev-kit/ndk": "^2.8.1",
+    "@repo/database": "workspace:*",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/event-fetcher": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@repo/utils": "workspace:*",
+    "@types/express": "4.17.17",
+    "cross-env": "^7.0.3",
+    "crypto": "^1.0.1",
+    "debug": "^4.3.4",
+    "express": "4.18.2",
+    "fastify": "^4.27.0",
+    "handlebars": "^4.7.8",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "2.0.0",
+    "tsup": "6.6.3",
+    "typescript": "^5.3.3",
+    "websocket-polyfill": "^0.0.3"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.12",
+    "@types/node": "^20.10.6",
+    "dotenv": "16.0.3",
+    "regenerator-runtime": "0.13.11"
+  },
+  "keywords": []
+}

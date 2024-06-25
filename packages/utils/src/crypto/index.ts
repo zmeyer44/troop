@@ -1,4 +1,17 @@
-import * as crypto from "crypto";
+import * as cryptoT from "crypto";
+let crypto: typeof cryptoT;
+
+if (
+  typeof process !== "undefined" &&
+  process.versions &&
+  process.versions.node
+) {
+  // Node.js environment detected
+  crypto = require("crypto");
+} else {
+  // Browser environment, or crypto is already available globally
+  crypto = cryptoT;
+}
 
 export function encryptData(
   data: string,
