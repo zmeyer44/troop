@@ -31,11 +31,9 @@ export const revalidate = 3600; // revalidate at most every hour
 
 export default async function Page() {
   const eventsReceived = await getEvents();
-  const lastRevalidated = new Date();
   return (
     <div className="relative flex w-full flex-1 justify-center">
       <div className="flex-1 shrink grow space-y-3 p-3">
-        <p>{lastRevalidated.toISOString()}</p>
         <div className="">
           <TabsSorter />
         </div>
