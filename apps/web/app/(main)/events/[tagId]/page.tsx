@@ -75,11 +75,25 @@ export default async function Page({ params }: PageProps) {
   let event;
   let tagId = decodeURIComponent(params.tagId);
   if (tagId.startsWith("naddr") && nip19.BECH32_REGEX.test(tagId)) {
+    const { data, type } = nip19.decode(tagId);
+    if (type !== "naddr") return notFound();
     event = await prisma.calendarEvent.findFirst({
       where: {
-        bech32: tagId,
+        pubkey: data.pubkey,
+        identifier: data.identifier,
       },
     });
+    if (!event) {
+      const found = await getCalendarEvent(tagId);
+      if (found) {
+        event = await prisma.calendarEvent.findFirst({
+          where: {
+            pubkey: data.pubkey,
+            identifier: data.identifier,
+          },
+        });
+      }
+    }
   } else {
     event = await prisma.calendarEvent.findFirst({
       where: {
@@ -87,9 +101,7 @@ export default async function Page({ params }: PageProps) {
       },
     });
   }
-  if (!event) {
-    event = await getCalendarEvent(tagId);
-  }
+
   if (!event) {
     return notFound();
   }

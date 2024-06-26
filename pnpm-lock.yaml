@@ -236,6 +236,9 @@ importers:
       '@repo/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@repo/event-fetcher':
+        specifier: workspace:*
+        version: link:../../packages/event-fetcher
       '@repo/utils':
         specifier: workspace:*
         version: link:../../packages/utils

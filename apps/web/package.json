@@ -36,6 +36,7 @@
     "@radix-ui/react-tooltip": "^1.0.7",
     "@react-google-maps/api": "^2.19.3",
     "@repo/database": "workspace:*",
+    "@repo/event-fetcher": "workspace:*",
     "@repo/utils": "workspace:*",
     "@tailwindcss/container-queries": "^0.1.1",
     "@tanstack/react-query": "^4.33.0",

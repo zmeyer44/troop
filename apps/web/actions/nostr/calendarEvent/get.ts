@@ -17,6 +17,7 @@ import {
 } from "@repo/utils";
 import { nip19 } from "nostr-tools";
 import { addCalendarEvent as addCalendarEventFunction } from "@repo/utils";
+import { addEvent } from "@repo/event-fetcher";
 
 export async function getCalendarEvent(naddr: string, relays?: string[]) {
   const { data, type } = nip19.decode(naddr);
@@ -60,11 +61,6 @@ export async function getCalendarEvent(naddr: string, relays?: string[]) {
   console.log("Found", event);
   if (event) {
     const rawEvent = event.rawEvent();
-    const { data: parsedEvent, success } = EventSchema.safeParse(rawEvent);
-    if (!success) {
-      throw new Error("Unable to parse event");
-    }
-    console.log("Pasred event", parsedEvent);
-    await addCalendarEventFunction(parsedEvent);
+    return await addEvent(rawEvent);
   }
 }
