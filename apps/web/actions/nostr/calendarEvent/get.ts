@@ -49,7 +49,7 @@ export async function getCalendarEvent(naddr: string, relays?: string[]) {
   ndk.activeUser = user;
   ndk.activeUser = user;
   await ndk.connect(2000);
-  await sleep(5_000);
+  await sleep(2_000);
   const event = await ndk.fetchEvent(
     {
       kinds: [kind as NDKKind],
