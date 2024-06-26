@@ -9,4 +9,12 @@ module.exports = {
 
     return config;
   },
+  async rewrites() {
+    return [
+      {
+        source: "/event/:key",
+        destination: "/events/:key",
+      },
+    ];
+  },
 };

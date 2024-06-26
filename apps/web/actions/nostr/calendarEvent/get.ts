@@ -16,15 +16,14 @@ import {
   EventSchema,
 } from "@repo/utils";
 import { nip19 } from "nostr-tools";
-import { addCalendarEvent as addCalendarEventFunction } from "@repo/utils";
 import { addEvent } from "@repo/event-fetcher";
 
-export async function getCalendarEvent(naddr: string, relays?: string[]) {
+export async function getCalendarEvent(naddr: string) {
   const { data, type } = nip19.decode(naddr);
   if (type !== "naddr") {
     throw new Error("Invalid type");
   }
-  const { identifier, kind, pubkey } = data;
+  const { identifier, kind, pubkey, relays } = data;
   const ndk = new NDK({
     outboxRelayUrls: ["wss://purplepag.es"],
     explicitRelayUrls: relays ?? [
@@ -46,7 +45,6 @@ export async function getCalendarEvent(naddr: string, relays?: string[]) {
   ndk.pool?.on("relay:connect", (relay) => {
     console.log("✅ MAIN POOL Connected to relay", relay.url);
   });
-  ndk.activeUser = user;
   ndk.activeUser = user;
   await ndk.connect(2000);
   await sleep(2_000);
