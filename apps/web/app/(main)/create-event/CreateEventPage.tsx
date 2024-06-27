@@ -31,6 +31,7 @@ import TicketInfoSection from "./components/TicketInfoSection";
 import ImageUploadSection from "./components/ImageUploadSection";
 import LocationInputSection from "./components/LocationInputSection";
 import DescriptionInputSection from "./components/DescriptionInputSection";
+import { addEvent } from "@repo/event-fetcher";
 
 export default function CreateEventPage() {
   const { ndk } = useNDK();
@@ -194,7 +195,7 @@ export default function CreateEventPage() {
           kind: TimeBasedCalendarEventKind,
           pubkey: eventToPublish.pubkey,
         });
-        await addCalendarEvent(eventToPublish.rawEvent() as NostrEvent);
+        await addEvent(eventToPublish.rawEvent() as NostrEvent);
         toast({
           title: "Event Created!",
           description: "Your event has been successfully published to relays.",
