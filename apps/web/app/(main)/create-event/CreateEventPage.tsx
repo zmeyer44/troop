@@ -121,7 +121,9 @@ export default function CreateEventPage() {
 
       const markdown = NodeHtmlMarkdown.translate(
         /* html */ description,
-        /* options (optional) */ {},
+        /* options (optional) */ {
+          textReplace: [[RegExp("^\\\\"), ""]],
+        },
         /* customTranslators (optional) */ undefined,
         /* customCodeBlockTranslators (optional) */ undefined,
       );
