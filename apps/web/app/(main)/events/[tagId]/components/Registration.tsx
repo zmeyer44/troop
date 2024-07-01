@@ -7,12 +7,38 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useState } from "react";
+import { prisma } from "@repo/database";
+import { getTag } from "@repo/utils";
 type RegistrationSectionProps = {
-  state: "closed" | "waitlist" | "open";
+  eventId: string;
 };
-export default function RegistrationSection({
-  state,
+export default async function RegistrationSection({
+  eventId,
 }: RegistrationSectionProps) {
+  const [event, rsvps] = await Promise.all([
+    prisma.event.findFirstOrThrow({
+      where: {
+        id: eventId,
+      },
+    }),
+    prisma.rsvp.findMany({
+      where: {
+        calendarEvent: {
+          eventId,
+        },
+      },
+    }),
+  ]);
+  let state: null | "closed" | "waitlist" = null;
+  const maxCapacity = getTag(event.tags as string[][], "max-capacity", 1);
+  if (maxCapacity && rsvps.length >= parseInt(maxCapacity)) {
+    if (getTag(event.tags as string[][], "waitlist", 1)) {
+      state = "waitlist";
+    } else {
+      state = "closed";
+    }
+  }
   if (state === "closed") {
     return (
       <div className="bg-muted rounded-lg p-4">

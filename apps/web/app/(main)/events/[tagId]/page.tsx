@@ -177,7 +177,7 @@ export default async function Page({ params }: PageProps) {
           </div>
         </div>
         {/* Registration */}
-        <RegistrationSection state="waitlist" />
+        <RegistrationSection eventId={event.eventId} />
         {/* MarkDown Section */}
         <InfoSection title={"About Event"}>
           <PlainText markdown={event.description ?? ""} />

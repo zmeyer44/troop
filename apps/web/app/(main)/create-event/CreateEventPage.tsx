@@ -167,6 +167,9 @@ export default function CreateEventPage() {
       }
       if (ticketOptions.maxCapacity) {
         tags.push(["max-capacity", ticketOptions.maxCapacity.toString()]);
+        if (ticketOptions.overflowWaitlist) {
+          tags.push(["waitlist", "true"]);
+        }
       }
 
       let eventToPublish: NDKEvent | undefined;
