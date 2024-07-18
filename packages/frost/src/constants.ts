@@ -1,16 +1,25 @@
-//  The prime modulus of the field
-const P = BigInt(2 ** 256 - 2 ** 32 - 977);
+/**
+ * These constants define the elliptic curve secp256k1, widely used in cryptographic
+ * applications, including Bitcoin. The curve operates over a finite field of prime
+ * order P, with a base point G of order Q, specified by its coordinates G_x and G_y.
+ */
+
+// secp256k1 constants for elliptic curve cryptography
+
+// The prime modulus of the field
+export const P: bigint = 2n ** 256n - 2n ** 32n - 977n;
 
 // The order of the curve
-const Q =
-  BigInt(0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141);
+export const Q: bigint = BigInt(
+  "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",
+);
 
 // X-coordinate of the generator point G
-const G_x =
-  BigInt(0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798);
+export const G_x: bigint = BigInt(
+  "0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798",
+);
 
 // Y-coordinate of the generator point G
-const G_y =
-  BigInt(0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8);
-
-export { P, Q, G_x, G_y };
+export const G_y: bigint = BigInt(
+  "0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8",
+);

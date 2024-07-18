@@ -1,0 +1,56 @@
+import { Participant } from './participant'; // Adjust the import path as needed
+import { Point } from './point'; // Adjust the import path as needed
+
+describe('Participant Tests', () => {
+    let p1: Participant;
+    let p2: Participant;
+    let p3: Participant;
+
+    beforeEach(() => {
+        p1 = new Participant(1, 2, 3);
+        p2 = new Participant(2, 2, 3);
+        p3 = new Participant(3, 2, 3);
+
+        // Round 1.1, 1.2, 1.3, and 1.4
+        p1.init_keygen();
+        p2.init_keygen();
+        p3.init_keygen();
+
+        // Round 2.1
+        p1.generate_shares();
+        p2.generate_shares();
+        p3.generate_shares();
+
+        // Round 2.3
+        p1.aggregate_shares([p2.shares![p1.index - 1], p3.shares![p1.index - 1]]);
+        p2.aggregate_shares([p1.shares![p2.index - 1], p3.shares![p2.index - 1]]);
+        p3.aggregate_shares([p1.shares![p3.index - 1], p2.shares![p3.index - 1]]);
+
+        // Round 2.4
+        p1.derive_public_key([p2.coefficient_commitments![0], p3.coefficient_commitments![0]]);
+        p2.derive_public_key([p1.coefficient_commitments![0], p3.coefficient_commitments![0]]);
+        p3.derive_public_key([p1.coefficient_commitments![0], p2.coefficient_commitments![0]]);
+    });
+
+    test('Public keys should be equal', () => {
+        expect(p1.public_key).toEqual(p2.public_key);
+        expect(p2.public_key).toEqual(p3.public_key);
+    });
+
+    test('Group commitments should be equal', () => {
+        p1.derive_group_commitments([p2.coefficient_commitments!, p3.coefficient_commitments!]);
+        p2.derive_group_commitments([p1.coefficient_commitments!, p3.coefficient_commitments!]);
+        p3.derive_group_commitments([p1.coefficient_commitments!, p2.coefficient_commitments!]);
+
+        expect(p1.group_commitments).toEqual(p2.group_commitments);
+        expect(p2.group_commitments).toEqual(p3.group_commitments);
+    });
+
+    test('Verify shares', () => {
+        p1.derive_group_commitments([p2.coefficient_commitments!, p3.coefficient_commitments!]);
+        
+        expect(p1.verify_share(p1.aggregate_share!, p1.group_commitments!, 2)).toBe(true);
+        expect(p2.verify_share(p2.aggregate_share!, p1.group_commitments!, 2)).toBe(true);
+        expect(p3.verify_share(p3.aggregate_share!, p1.group_commitments!, 2)).toBe(true);
+    });
+});

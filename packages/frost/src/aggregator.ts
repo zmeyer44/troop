@@ -81,7 +81,7 @@ export class Aggregator {
     nonce_commitment_pairs: [Point, Point][],
     participant_indexes: number[],
   ): Point {
-    let group_commitment = new Point();
+    let group_commitment = new Point(null, null); // Point at infinity
 
     for (const index of participant_indexes) {
       if (index < 1 || index > nonce_commitment_pairs.length) {
@@ -95,12 +95,24 @@ export class Aggregator {
         participant_indexes,
       );
 
+      console.log(`Binding value for index ${index}:`, binding_value);
+
       const [first_commitment, second_commitment] =
         nonce_commitment_pairs[index - 1];
 
-      group_commitment = group_commitment
-        .add(first_commitment)
-        .add(second_commitment.multiply(binding_value));
+      console.log(`First commitment for index ${index}:`, first_commitment);
+      console.log(`Second commitment for index ${index}:`, second_commitment);
+
+      const partial_commitment = first_commitment.add(
+        second_commitment.multiply(binding_value),
+      );
+      group_commitment = group_commitment.add(partial_commitment);
+
+      console.log(`Intermediate group commitment:`, group_commitment);
+    }
+
+    if (group_commitment.isInfinity()) {
+      throw new Error("Resulting group commitment is the point at infinity");
     }
 
     return group_commitment;
@@ -165,15 +177,28 @@ export class Aggregator {
     return [this.message, this.nonce_commitment_pairs];
   }
 
-  signature(signature_shares: bigint[]): string {
+  signature(signature_shares: bigint[]): Buffer {
+    // Log the signature shares
+    console.log(
+      "Signature shares:",
+      signature_shares.map((s) => s.toString()),
+    );
+
     const group_commitment = Aggregator.group_commitment(
       this.message,
       this.nonce_commitment_pairs,
       this.participant_indexes,
     );
-    const nonce_commitment = group_commitment.xonly_serialize();
+
+    // Log the group commitment
+    console.log("Group commitment:", group_commitment.toString());
 
     let z = signature_shares.reduce((sum, share) => (sum + share) % Q, 0n);
+    if (z < 0n) {
+      z = (z + Q) % Q;
+    }
+    // Log z before any adjustments
+    console.log("z before adjustment:", z.toString());
 
     if (this.tweak !== null && this.tweaked_key !== null) {
       const challenge_hash = Aggregator.challenge_hash(
@@ -184,11 +209,18 @@ export class Aggregator {
       z = (z + challenge_hash * this.tweak) % Q;
     }
 
-    const z_bytes = Buffer.alloc(32);
-    z_bytes.writeBigUInt64BE(z >> 64n, 0);
-    z_bytes.writeBigUInt64BE(z & ((1n << 64n) - 1n), 8);
+    const nonce_commitment_buffer = group_commitment.xonly_serialize();
+    const z_buffer = Buffer.alloc(32);
+    const zHex = z.toString(16).padStart(64, "0");
+    z_buffer.write(zHex, 0, "hex");
 
-    return Buffer.concat([nonce_commitment, z_bytes]).toString("hex");
+    console.log(
+      "Nonce commitment in signature:",
+      nonce_commitment_buffer.toString("hex"),
+    );
+    console.log("z in signature:", z_buffer.toString("hex"));
+
+    return Buffer.concat([nonce_commitment_buffer, z_buffer]);
   }
 
   private static _compute_tweaks(

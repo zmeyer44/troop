@@ -1,4 +1,4 @@
-import { Q } from "./constants";
+import { Q, P } from "./constants";
 import { Point, G } from "./point";
 import { Aggregator } from "./aggregator";
 import { Matrix } from "./matrix";
@@ -17,11 +17,24 @@ if (
   crypto = cryptoT;
 }
 
-function sha256(data?: Buffer) {
-  if (data !== undefined) {
-    return crypto.createHash("sha256").update(data);
+function mod(a: bigint, b: bigint): bigint {
+  return ((a % b) + b) % b;
+}
+function pow(base: bigint, exponent: bigint, modulus: bigint): bigint {
+  if (modulus === 1n) return 0n;
+
+  let result = 1n;
+  base = base % modulus;
+
+  while (exponent > 0n) {
+    if (exponent % 2n === 1n) {
+      result = (result * base) % modulus;
+    }
+    exponent = exponent >> 1n;
+    base = (base * base) % modulus;
   }
-  return crypto.createHash("sha256");
+
+  return result;
 }
 
 export class Participant {
@@ -30,6 +43,8 @@ export class Participant {
   index: number;
   threshold: number;
   participants: number;
+  nonce: bigint | null;
+  randomValues: bigint[] | null;
   coefficients: bigint[] | null = null;
   coefficient_commitments: Point[] | null = null;
   proof_of_knowledge: [Point, bigint] | null = null;
@@ -44,7 +59,13 @@ export class Participant {
   group_commitments: Point[] | null = null;
   repair_participants: number[] | null = null;
 
-  constructor(index: number, threshold: number, participants: number) {
+  constructor(
+    index: number,
+    threshold: number,
+    participants: number,
+    randomValues?: bigint[],
+    nonce?: bigint,
+  ) {
     if (
       !Number.isInteger(index) ||
       !Number.isInteger(threshold) ||
@@ -58,6 +79,8 @@ export class Participant {
     this.index = index;
     this.threshold = threshold;
     this.participants = participants;
+    this.nonce = nonce ?? null;
+    this.randomValues = randomValues ?? null;
   }
 
   init_keygen(): void {
@@ -89,9 +112,22 @@ export class Participant {
   }
 
   private _generate_polynomial(): void {
-    this.coefficients = Array.from({ length: this.threshold }, () =>
-      BigInt(Math.floor(Math.random() * Number(Q))),
-    );
+    this.coefficients = Array.from({ length: this.threshold }, (_, i) => {
+      let randomValue = BigInt(`0x${crypto.randomBytes(32).toString("hex")}`);
+      // console.log("Random value", i, ":", randomValue);
+      // // HERE FORCE
+      // if (i === 0) {
+      //   randomValue =
+      //     39113496162684619089679778871156432378671778925335328068175902702150226881309n;
+      // } else {
+      //   randomValue =
+      //     74164717560077900282323634178563204273716101166499855619344565818698113929707n;
+      // }
+      return randomValue % Q;
+    });
+    if (this.randomValues) {
+      this.coefficients = this.randomValues;
+    }
   }
 
   private _generate_refresh_polynomial(): void {
@@ -110,21 +146,39 @@ export class Participant {
   }
 
   private _compute_proof_of_knowledge(): void {
-    if (!this.coefficients) {
+    if (!this.coefficients || this.coefficients.length === 0) {
       throw new Error("Polynomial coefficients must be initialized.");
     }
 
-    const nonce = BigInt(Math.floor(Math.random() * Number(Q)));
+    // k ⭠ ℤ_q
+    let nonce = BigInt(`0x${crypto.randomBytes(32).toString("hex")}`) % Q;
+    console.log("NONCE", nonce);
+    if (this.nonce) {
+      nonce = this.nonce;
+    }
+
+    // R_i = g^k
     const nonce_commitment = G.multiply(nonce);
+
+    // i
     const index_byte = Buffer.alloc(1);
     index_byte.writeUInt8(this.index);
+
+    // 𝚽
     const context_bytes = Participant.CONTEXT;
+    console.log("nonce_", nonce);
+    console.log("nonce_commitmentx", nonce_commitment.x);
+    console.log("nonce_commitmenty", nonce_commitment.y);
+    // g^a_i_0
     const secret = this.coefficients[0];
     const secret_commitment = G.multiply(secret);
     const secret_commitment_bytes = secret_commitment.sec_serialize();
+
+    // R_i
     const nonce_commitment_bytes = nonce_commitment.sec_serialize();
 
-    const challenge_hash = sha256();
+    // c_i = H(i, 𝚽, g^a_i_0, R_i)
+    const challenge_hash = crypto.createHash("sha256");
     challenge_hash.update(index_byte);
     challenge_hash.update(context_bytes);
     challenge_hash.update(secret_commitment_bytes);
@@ -134,8 +188,12 @@ export class Participant {
       `0x${challenge_hash_bytes.toString("hex")}`,
     );
 
+    // μ_i = k + a_i_0 * c_i
     const s = (nonce + secret * challenge_hash_int) % Q;
+
+    // σ_i = (R_i, μ_i)
     this.proof_of_knowledge = [nonce_commitment, s];
+    console.log("REturning", [nonce_commitment, s]);
   }
 
   private _compute_coefficient_commitments(): void {
@@ -145,6 +203,10 @@ export class Participant {
 
     this.coefficient_commitments = this.coefficients.map((coefficient) =>
       G.multiply(coefficient),
+    );
+    console.log(
+      "_compute_coefficient_commitments",
+      this.coefficient_commitments,
     );
   }
 
@@ -177,7 +239,10 @@ export class Participant {
       nonce_commitment_bytes,
     ]);
 
-    const challenge_hash = sha256(challenge_input).digest();
+    const challenge_hash = crypto
+      .createHash("sha256")
+      .update(challenge_input)
+      .digest();
     const challenge_hash_int = BigInt(`0x${challenge_hash.toString("hex")}`);
 
     const expected_nonce_commitment = G.multiply(s).add(
@@ -362,7 +427,11 @@ export class Participant {
   }
 
   private _evaluate_polynomial(x: bigint): bigint {
-    if (!this.coefficients) {
+    if (typeof x !== "bigint") {
+      throw new Error("The value of x must be a bigint.");
+    }
+
+    if (!this.coefficients || this.coefficients.length === 0) {
       throw new Error("Polynomial coefficients must be initialized.");
     }
 
@@ -370,10 +439,11 @@ export class Participant {
     for (let i = this.coefficients.length - 1; i >= 0; i--) {
       y = (y * x + this.coefficients[i]) % Q;
     }
+
     return y;
   }
 
-  private _lagrange_coefficient(
+  _lagrange_coefficient(
     participant_indexes: number[],
     x: bigint = 0n,
     participant_index?: bigint,
@@ -395,7 +465,7 @@ export class Participant {
       numerator = numerator * (x - BigInt(index));
       denominator = denominator * (participant_index - BigInt(index));
     }
-    return (numerator * Participant.modInverse(denominator, Q)) % Q;
+    return (numerator * pow(denominator, Q - 2n, Q)) % Q;
   }
 
   verify_share(
@@ -414,6 +484,10 @@ export class Participant {
       this.index,
       threshold,
     );
+    const index = this.index;
+    console.log("Share", { share, index, threshold });
+    console.log("Expected", expected_share);
+    console.log("Actual", G.multiply(share));
     return G.multiply(share).equals(expected_share);
   }
 
@@ -440,6 +514,7 @@ export class Participant {
     } else {
       this.aggregate_share = aggregate_share;
     }
+    console.log("Ag", this.aggregate_share);
   }
 
   aggregate_repair_shares(other_shares: bigint[]): void {
@@ -573,17 +648,19 @@ export class Participant {
   }
 
   derive_public_key(other_secret_commitments: Point[]): Point {
-    if (!this.coefficient_commitments) {
+    if (
+      !this.coefficient_commitments ||
+      this.coefficient_commitments.length === 0
+    ) {
       throw new Error(
         "Coefficient commitments have not been initialized or are empty.",
       );
     }
 
     let public_key = this.coefficient_commitments[0];
+    console.log("Init y", public_key.y);
     for (const other_secret_commitment of other_secret_commitments) {
-      if (!(other_secret_commitment instanceof Point)) {
-        throw new Error("All secret commitments must be Point instances.");
-      }
+      console.log("Adding ", other_secret_commitment);
       public_key = public_key.add(other_secret_commitment);
     }
 
@@ -652,7 +729,10 @@ export class Participant {
       nonce_commitment_pairs,
       participant_indexes,
     );
-    if (!group_commitment.x || !group_commitment.y) {
+
+    console.log("Group commitment:", group_commitment);
+
+    if (group_commitment.isInfinity()) {
       throw new Error("Group commitment is the point at infinity.");
     }
 
@@ -674,7 +754,7 @@ export class Participant {
 
     let [first_nonce, second_nonce] = this.nonce_pair;
 
-    if (group_commitment.y % 2n !== 0n) {
+    if (group_commitment.y! % 2n !== 0n) {
       first_nonce = Q - first_nonce;
       second_nonce = Q - second_nonce;
     }
@@ -695,7 +775,6 @@ export class Participant {
     if (public_key.y % 2n !== BigInt(parity)) {
       aggregate_share = Q - aggregate_share;
     }
-
     return (
       (first_nonce +
         second_nonce * binding_value +

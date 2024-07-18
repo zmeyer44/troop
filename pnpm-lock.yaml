@@ -239,6 +239,9 @@ importers:
       '@repo/event-fetcher':
         specifier: workspace:*
         version: link:../../packages/event-fetcher
+      '@repo/frost':
+        specifier: workspace:*
+        version: link:../../packages/frost
       '@repo/utils':
         specifier: workspace:*
         version: link:../../packages/utils
