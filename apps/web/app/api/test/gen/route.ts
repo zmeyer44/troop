@@ -55,7 +55,6 @@ async function handler(req: Request) {
   const client = new SingleSigner(2, 2, 2, clientKey, pubkey);
   bunker.generate_nonce_pair();
   client.generate_nonce_pair();
-  console.log("Setting agg");
   const agg = new Aggregator(
     pubkey,
     messageToSign,
@@ -93,11 +92,17 @@ async function handler(req: Request) {
     id: eventHash,
     sig: iceBoxSig,
   });
+  const altFakeEvent = verifyEvent({
+    ...nostrEvent,
+    id: eventHash,
+    sig: "7b9897e107163c955c998e391aade4dd966e4e0c25353b369146c47537be5e0149c41aa4822d4555d185dd79810fc796568e6e8c150e5c52508f3c0b982ffca5",
+  });
   return NextResponse.json({
     eventToPublish,
     validEvent,
     iceBoxSig,
     altEvent,
+    altFakeEvent,
   });
 
   //   p2.generate_shares();
@@ -215,29 +220,6 @@ async function handler(req: Request) {
 }
 
 export { handler as GET };
-
-function bigIntToUint8Array(bigInt: bigint): Uint8Array {
-  if (bigInt < 0n) {
-    throw new Error("BigInt must be non-negative");
-  }
-
-  // Convert BigInt to hexadecimal string
-  let hexString = bigInt.toString(16);
-
-  // Ensure even number of characters
-  if (hexString.length % 2 !== 0) {
-    hexString = "0" + hexString;
-  }
-
-  // Create Uint8Array from hex string
-  const result = new Uint8Array(hexString.length / 2);
-  for (let i = 0; i < result.length; i++) {
-    const byte = parseInt(hexString.substr(i * 2, 2), 16);
-    result[i] = byte;
-  }
-
-  return result;
-}
 
 function uint8ArrayToHexString(uint8Array: Uint8Array): string {
   return Array.from(uint8Array, (byte) =>
