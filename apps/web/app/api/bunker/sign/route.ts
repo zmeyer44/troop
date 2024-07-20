@@ -21,6 +21,10 @@ async function handler(req: Request, { params }: { params: IParams }) {
     { bunkerNonceCommitmentPair, bunkerSignature },
     {
       status: 200,
+      headers: {
+        "Cross-Origin-Resource-Policy": "cross-origin",
+        "Access-Control-Allow-Origin": "*",
+      },
     },
   );
 }
