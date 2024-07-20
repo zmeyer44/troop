@@ -34,6 +34,11 @@ export async function repeatEvent(rawEvent: Event) {
     c.x!.toString(16),
     c.y!.toString(16),
   ]) as [[string, string], [string, string]];
+  const bodyToSend = JSON.stringify({
+    eventHash,
+    clientNonceCommitmentPair,
+  });
+  console.log("SENDING", bodyToSend);
 
   const bunkerSignaturePart = await fetchWithZod(
     // The schema you want to validate with
@@ -45,10 +50,7 @@ export async function repeatEvent(rawEvent: Event) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        eventHash,
-        clientNonceCommitmentPair,
-      }),
+      body: bodyToSend,
     },
   );
   const agg = new Aggregator(
