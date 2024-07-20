@@ -9,7 +9,7 @@ import {
   getPublicKey,
   generateSecretKey,
 } from "nostr-tools";
-import { schnorr } from "@noble/curves/secp256k1";
+// import { schnorr } from "@noble/curves/secp256k1";
 
 async function handler(req: Request) {
   const p1 = new Participant(1, 2, 2);
@@ -73,11 +73,11 @@ async function handler(req: Request) {
   // σ = (R, z)
   const rawSig = agg.signature([sBunker, sClient]);
   const iceBoxSig = rawSig.toString("hex");
-  const rootSignature = schnorr.sign(eventHash, rootKey);
+  // const rootSignature = schnorr.sign(eventHash, rootKey);
   const eventToPublish = {
     ...nostrEvent,
     id: eventHash,
-    sig: uint8ArrayToHexString(rootSignature),
+    sig: iceBoxSig,
   };
   const validEvent = verifyEvent(eventToPublish);
   const altEvent = verifyEvent({
