@@ -142,6 +142,9 @@ importers:
       frost-ts:
         specifier: ^0.0.1
         version: 0.0.1(@types/node@20.14.7)(typescript@4.9.4)
+      node-fetch:
+        specifier: ^3.3.2
+        version: 3.3.2
       nostr-tools:
         specifier: ^2.7.1
         version: 2.7.1(typescript@4.9.4)

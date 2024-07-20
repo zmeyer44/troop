@@ -45,7 +45,7 @@ export async function repeatEvent(rawEvent: Event) {
     // Any parameters you would usually pass to fetch
     BUNKER_URL,
     {
-      method: "POST",
+      method: "post",
       headers: {
         "content-type": "application/json",
       },
