@@ -35,11 +35,10 @@ export async function repeatEvent(rawEvent: Event) {
     c.y!.toString(16),
   ]) as [[string, string], [string, string]];
   const bodyToSend = JSON.stringify({
-    eventHash,
-    clientNonceCommitmentPair,
+    eventHash: eventHash,
+    clientNonceCommitmentPair: clientNonceCommitmentPair,
   });
   console.log("SENDING", bodyToSend);
-
   const bunkerSignaturePart = await fetchWithZod(
     // The schema you want to validate with
     BunkerResponseSchema,
