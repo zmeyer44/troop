@@ -8,6 +8,7 @@ const CLIENT_SECRET =
   "26a83c8c246132b27f3f6a600dbd27bf76bb1e3ce8dba844018d540dba4fef41";
 
 export async function repeatEvent(rawEvent: Event) {
+  console.log("repeatEvent", rawEvent);
   const BUNKER_SECRET = process.env.BUNKER_SECRET;
   const participant_indexes = [1, 2];
   const clientKey = BigInt(`0x${CLIENT_SECRET}`);
@@ -53,6 +54,7 @@ export async function repeatEvent(rawEvent: Event) {
     sig: iceBoxSig,
   };
   const validEvent = verifyEvent(eventToPublish);
+  console.log("IS valid", validEvent);
   if (validEvent) {
     // Publish the event
     return eventToPublish;

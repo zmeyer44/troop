@@ -40,6 +40,7 @@ async function main() {
     await ndk.connect(2000);
     await sleep(5_000);
     const eventIds = new Set();
+    const brokerEventIds = new Set();
     let eventsToProcess: Event[] = [];
     let brokerEventsToProcess: Event[] = [];
     const eventStore = await ndk
@@ -116,6 +117,7 @@ async function main() {
     const processBrokerLoop = async () => {
       try {
         if (brokerEventsToProcess.length === 0) return;
+        console.log("processBrokerLoop Found");
         const event = brokerEventsToProcess.pop();
         if (!event) return;
         const eventToPublish = await repeatEvent(event);
@@ -139,8 +141,8 @@ async function main() {
 
     async function onBrokerEvent(event: Event, relay?: Relay) {
       console.log(`Received event ${event.id} from ${relay}`);
-      if (eventIds.has(event.id)) return;
-      eventIds.add(event.id);
+      if (brokerEventIds.has(event.id)) return;
+      brokerEventIds.add(event.id);
       const normalizedEvent: Event = {
         id: event.id,
         pubkey: event.pubkey,
@@ -150,6 +152,7 @@ async function main() {
         content: event.content,
         sig: event.sig,
       };
+      console.log("Adding to brokerEventsToProcess", normalizedEvent);
       brokerEventsToProcess.push(normalizedEvent);
     }
   } catch (err) {
