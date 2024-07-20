@@ -1,21 +1,23 @@
-import { NostrEvent } from "@nostr-dev-kit/ndk";
 import { getEventHash, verifyEvent, Event } from "nostr-tools";
 import { SingleSigner, Point, Aggregator } from "frost-ts";
+import { z } from "zod";
+import { createZodFetcher } from "zod-fetch";
+const fetchWithZod = createZodFetcher();
+const BUNKER_URL = "https://www.troop.is/api/bunker/sign";
 
-const TARGET_PUBKEY =
-  "1b5c7f2f8a8f7e7ea7775879fd02d098db6ec588114521f1a1edfccd635c1fe9";
-const CLIENT_SECRET =
-  "240a5be44fee427b493a5bf680834312025eb39aae429059f337617577fde4e72";
+const BunkerResponseSchema = z.object({
+  bunkerSignature: z.string(),
+  bunkerNonceCommitmentPair: z.tuple([
+    z.tuple([z.string(), z.string()]),
+    z.tuple([z.string(), z.string()]),
+  ]),
+});
 
 export async function repeatEvent(rawEvent: Event) {
-  console.log("repeatEvent", rawEvent);
-  const BUNKER_SECRET = process.env.BUNKER_SECRET;
-  const participant_indexes = [1, 2];
+  const CLIENT_SECRET = process.env.CLIENT_SECRET as string;
+  const TARGET_PUBKEY = process.env.TARGET_PUBKEY as string;
   const clientKey = BigInt(`0x${CLIENT_SECRET}`);
-  const bunkerKey = BigInt(`0x${BUNKER_SECRET}`);
-  const pubkey = Point.xonlyDeserialize(Buffer.from(TARGET_PUBKEY, "hex"));
-  const bunker = new SingleSigner(1, 2, 2, bunkerKey, pubkey);
-  const client = new SingleSigner(2, 2, 2, clientKey, pubkey);
+  const participantIndexes = [1, 2];
   const nostrEvent = {
     pubkey: TARGET_PUBKEY,
     content: rawEvent.content,
@@ -24,35 +26,57 @@ export async function repeatEvent(rawEvent: Event) {
     tags: rawEvent.tags,
   };
   const eventHash = getEventHash(nostrEvent);
-  const messageToSign = Buffer.from(eventHash, "hex");
-  bunker.generateNoncePair();
+  const messageBuffer = Buffer.from(eventHash, "hex");
+  const pubkey = Point.xonlyDeserialize(Buffer.from(TARGET_PUBKEY, "hex"));
+  const client = new SingleSigner(2, 2, 2, clientKey, pubkey);
   client.generateNoncePair();
+  const clientNonceCommitmentPair = client.nonceCommitmentPair!.map((c) => [
+    c.x!.toString(16),
+    c.y!.toString(16),
+  ]) as [[string, string], [string, string]];
+
+  const bunkerSignaturePart = await fetchWithZod(
+    // The schema you want to validate with
+    BunkerResponseSchema,
+    // Any parameters you would usually pass to fetch
+    BUNKER_URL,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        eventHash,
+        clientNonceCommitmentPair,
+      }),
+    },
+  );
   const agg = new Aggregator(
     pubkey,
-    messageToSign,
-    [bunker.nonceCommitmentPair!, client.nonceCommitmentPair!],
-    participant_indexes,
+    messageBuffer,
+    [
+      bunkerSignaturePart.bunkerNonceCommitmentPair.map(
+        ([x, y]) => new Point(BigInt(`0x${x}`), BigInt(`0x${y}`)),
+      ) as [Point, Point],
+      client.nonceCommitmentPair!,
+    ],
+    participantIndexes,
   );
   const [message, nonceCommitmentPairs] = agg.signingInputs();
-  const sBunker = bunker.sign(
-    message,
-    nonceCommitmentPairs,
-    participant_indexes,
-  );
   const sClient = client.sign(
     message,
     nonceCommitmentPairs,
-    participant_indexes,
+    participantIndexes,
   );
 
-  // σ = (R, z)
-  const rawSig = agg.signature([sBunker, sClient]);
-  const iceBoxSig = rawSig.toString("hex");
+  const rawSig = agg.signature([
+    BigInt(`0x${bunkerSignaturePart.bunkerSignature}`),
+    sClient,
+  ]);
+  const hexSig = rawSig.toString("hex");
   const eventToPublish = {
     ...nostrEvent,
     id: eventHash,
-    sig: iceBoxSig,
+    sig: hexSig,
   };
+
   const validEvent = verifyEvent(eventToPublish);
   console.log("IS valid", validEvent);
   if (validEvent) {

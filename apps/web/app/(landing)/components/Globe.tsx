@@ -20,10 +20,20 @@ export default function Globe({ events }: GlobeProps) {
   const size = useMemo(() => clamp(300, 600, dims.width), [dims]);
   const markers = useMemo(
     () =>
-      events.map((e) => {
-        const { lat, lon } = Geohash.decode(e.geohash!);
-        return { location: [lat, lon], size: 0.03 + Math.random() * 0.07 };
-      }),
+      events
+        .filter((g) => {
+          if (!g.geohash) return false;
+          try {
+            Geohash.decode(g.geohash);
+            return true;
+          } catch (err) {
+            return false;
+          }
+        })
+        .map((e) => {
+          const { lat, lon } = Geohash.decode(e.geohash!);
+          return { location: [lat, lon], size: 0.03 + Math.random() * 0.07 };
+        }),
     [events],
   );
 

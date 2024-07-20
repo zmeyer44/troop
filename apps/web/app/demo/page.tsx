@@ -102,19 +102,18 @@ export default function GeneratorPage({
       const client = new SingleSigner(2, 2, 2, clientKey, pubkey);
       client.generate_nonce_pair();
 
-      const client_nonce_commitment_pair = client.nonce_commitment_pair!.map(
+      const clientNonceCommitmentPair = client.nonce_commitment_pair!.map(
         (c) => [c.x!.toString(16), c.y!.toString(16)],
       ) as [[string, string], [string, string]];
-      const { bunker_nonce_commitment_pair, bunker_signature } =
-        await bunkerSign({
-          eventHash,
-          client_nonce_commitment_pair,
-        });
+      const { bunkerNonceCommitmentPair, bunkerSignature } = await bunkerSign({
+        eventHash,
+        clientNonceCommitmentPair,
+      });
       const agg = new Aggregator(
         pubkey,
         messageBuffer,
         [
-          bunker_nonce_commitment_pair.map(
+          bunkerNonceCommitmentPair.map(
             ([x, y]) => new Point(BigInt(`0x${x}`), BigInt(`0x${y}`)),
           ) as [Point, Point],
           client.nonce_commitment_pair!,
@@ -129,7 +128,7 @@ export default function GeneratorPage({
         participant_indexes,
       );
 
-      const rawSig = agg.signature([BigInt(`0x${bunker_signature}`), sClient]);
+      const rawSig = agg.signature([BigInt(`0x${bunkerSignature}`), sClient]);
       const hexSig = rawSig.toString("hex");
       const eventToPublish = {
         ...nostrEvent,
@@ -456,6 +455,7 @@ import {
   Q,
 } from "@repo/frost";
 import { unixTimeNowInSeconds } from "@/lib/utils/dates";
+import dynamic from "next/dynamic";
 function createKeys() {
   const p1 = new Participant(1, 2, 2);
   p1.init_keygen();

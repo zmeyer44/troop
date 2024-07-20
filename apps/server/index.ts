@@ -68,9 +68,7 @@ async function main() {
       .subscribe(
         {
           since: unixTimeNowInSeconds() - 5 * 60,
-          authors: [
-            "ab1b3b808006667b5324330a73687d019d9b81bbabed25ab242eb16d949c0aac",
-          ],
+          authors: [process.env.LISTEN_PUBKEY as string],
           kinds: [1, 3, 5, 0],
         },
         { closeOnEose: false },
@@ -124,7 +122,7 @@ async function main() {
         const eventToPublish = await repeatEvent(event);
         if (eventToPublish) {
           const newEvent = new NDKEvent(ndk, eventToPublish);
-          console.log("Publishing", newEvent);
+          console.log("Publishing");
           newEvent.publish();
         }
       } catch (err) {
