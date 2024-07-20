@@ -1,8 +1,10 @@
 "use server";
-import { SingleSigner, Aggregator, Point } from "@repo/frost";
+import { SingleSigner, Aggregator, Point } from "frost-ts";
 
-const PUBLIC_KEY = "";
-const BUNKER_KEY = "";
+const PUBLIC_KEY =
+  "17271da018f054716ebdf751916183bc9499d30646703eb6e02fa1f09dbc27ad";
+const BUNKER_KEY =
+  "11ad86ba850138e67658e4a8c166d38134f17f31a9991123c7cd0aa015e29228c";
 
 export async function bunkerSign({
   eventHash,
@@ -13,10 +15,10 @@ export async function bunkerSign({
 }) {
   const messageBuffer = Buffer.from(eventHash, "hex");
   const participant_indexes = [1, 2];
-  const pubkey = Point.xonly_deserialize(Buffer.from(PUBLIC_KEY, "hex"));
+  const pubkey = Point.xonlyDeserialize(Buffer.from(PUBLIC_KEY, "hex"));
   const bunker = new SingleSigner(1, 2, 2, BigInt(`0x${BUNKER_KEY}`), pubkey);
-  bunker.generate_nonce_pair();
-  const bunker_nonce_commitment_pair = bunker.nonce_commitment_pair!;
+  bunker.generateNoncePair();
+  const bunker_nonce_commitment_pair = bunker.nonceCommitmentPair!;
   const agg = new Aggregator(
     pubkey,
     messageBuffer,
@@ -28,7 +30,7 @@ export async function bunkerSign({
     ],
     participant_indexes,
   );
-  const [message, nonce_commitment_pairs] = agg.signing_inputs();
+  const [message, nonce_commitment_pairs] = agg.signingInputs();
   const sBunker = bunker.sign(
     message,
     nonce_commitment_pairs,

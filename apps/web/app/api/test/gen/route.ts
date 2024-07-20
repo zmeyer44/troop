@@ -1,14 +1,7 @@
 import "@/polyfill";
 import { NextResponse } from "next/server";
 import { prisma } from "@repo/database";
-import {
-  Participant,
-  SingleSigner,
-  Aggregator,
-  Point,
-  G,
-  Q,
-} from "@repo/frost";
+import { Participant, SingleSigner, Aggregator, Point, G, Q } from "frost-ts";
 import { assert } from "console";
 import {
   getEventHash,
@@ -25,16 +18,16 @@ async function handler(req: Request) {
   console.log("Initial", p1);
 
   // Round 1.1, 1.2, 1.3, and 1.4
-  p1.init_keygen();
+  p1.initKeygen();
   console.log("Poset key gen", p1);
-  const singlePubkey = p1.derive_public_key([]);
+  const singlePubkey = p1.derivePublicKey([]);
   console.log({ singlePubkey });
 
-  //   p2.init_keygen();
-  //   p3.init_keygen();
+  //   p2.initKeygen();
+  //   p3.initKeygen();
 
   // Round 2.1
-  p1.generate_shares();
+  p1.generateShares();
   console.log("P1 shares", p1.shares);
   const rootKey = p1.coefficients![0];
   const pubkey = G.multiply(rootKey);
@@ -42,7 +35,7 @@ async function handler(req: Request) {
   const clientKey = p1.coefficients![0] + p1.coefficients![1] * 2n;
 
   const nostrEvent = {
-    pubkey: pubkey.xonly_serialize().toString("hex"),
+    pubkey: pubkey.xonlySerialize().toString("hex"),
     content: "test",
     kind: 1,
     created_at: 1721253848,
@@ -53,26 +46,26 @@ async function handler(req: Request) {
   const participant_indexes = [1, 2];
   const bunker = new SingleSigner(1, 2, 2, bunkerKey, pubkey);
   const client = new SingleSigner(2, 2, 2, clientKey, pubkey);
-  bunker.generate_nonce_pair();
-  client.generate_nonce_pair();
+  bunker.generateNoncePair();
+  client.generateNoncePair();
   const agg = new Aggregator(
     pubkey,
     messageToSign,
-    [bunker.nonce_commitment_pair!, client.nonce_commitment_pair!],
+    [bunker.nonceCommitmentPair!, client.nonceCommitmentPair!],
     [1, 2],
   );
-  console.log("agg signing_inputs");
-  const [message, nonce_commitment_pairs] = agg.signing_inputs();
+  console.log("agg signingInputs");
+  const [message, nonceCommitmentPairs] = agg.signingInputs();
   console.log("Signing");
 
   const sBunker = bunker.sign(
     message,
-    nonce_commitment_pairs,
+    nonceCommitmentPairs,
     participant_indexes,
   );
   const sClient = client.sign(
     message,
-    nonce_commitment_pairs,
+    nonceCommitmentPairs,
     participant_indexes,
   );
   console.log("Signing Complete");
@@ -105,8 +98,8 @@ async function handler(req: Request) {
     altFakeEvent,
   });
 
-  //   p2.generate_shares();
-  //   p3.generate_shares();
+  //   p2.generateShares();
+  //   p3.generateShares();
   //   console.log("P2 shares", p2.shares);
   //   console.log("P3 shares", p3.shares);
   // Round 2.3
@@ -119,15 +112,15 @@ async function handler(req: Request) {
   //   p3.aggregate_shares([p1.shares![p3.index - 1], p2.shares![p3.index - 1]]);
 
   // Round 2.4
-  //   p1.derive_public_key([
+  //   p1.derivePublicKey([
   //     p2.coefficient_commitments![0],
   //     p3.coefficient_commitments![0],
   //   ]);
-  //   p2.derive_public_key([
+  //   p2.derivePublicKey([
   //     p1.coefficient_commitments![0],
   //     p3.coefficient_commitments![0],
   //   ]);
-  //   p3.derive_public_key([
+  //   p3.derivePublicKey([
   //     p1.coefficient_commitments![0],
   //     p2.coefficient_commitments![0],
   //   ]);
@@ -160,7 +153,7 @@ async function handler(req: Request) {
   //   // Test Sign
   //   const pk = p1.public_key!;
   //   const nostrEvent = {
-  //     pubkey: pk.xonly_serialize().toString("hex"),
+  //     pubkey: pk.xonlySerialize().toString("hex"),
   //     content: "test",
   //     kind: 1,
   //     created_at: 1721253848,
@@ -170,20 +163,20 @@ async function handler(req: Request) {
   //   const messageToSign = Buffer.from(eventHash, "hex");
 
   //   // NonceGen
-  //   p1.generate_nonce_pair();
-  //   p2.generate_nonce_pair();
-  //   p3.generate_nonce_pair();
+  //   p1.generateNoncePair();
+  //   p2.generateNoncePair();
+  //   p3.generateNoncePair();
   //   const participant_indexes = [1, 2];
   //   const agg = new Aggregator(
   //     pk,
   //     messageToSign,
-  //     [p1.nonce_commitment_pair!, p2.nonce_commitment_pair!],
+  //     [p1.nonceCommitmentPair!, p2.nonceCommitmentPair!],
   //     participant_indexes,
   //   );
 
-  //   const [message, nonce_commitment_pairs] = agg.signing_inputs();
-  //   const s1 = p1.sign(message, nonce_commitment_pairs, participant_indexes);
-  //   const s2 = p2.sign(message, nonce_commitment_pairs, participant_indexes);
+  //   const [message, nonceCommitmentPairs] = agg.signingInputs();
+  //   const s1 = p1.sign(message, nonceCommitmentPairs, participant_indexes);
+  //   const s2 = p2.sign(message, nonceCommitmentPairs, participant_indexes);
 
   //   // σ = (R, z)
   //   const rawSig = agg.signature([s1, s2]);

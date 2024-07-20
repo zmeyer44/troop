@@ -191,3 +191,9 @@ model VerificationToken {
 
   @@id([identifier, token])
 }
+
+model Challenge {
+  id        String   @id
+  challenge String
+  expires   DateTime
+}
