@@ -69,7 +69,7 @@ async function main() {
         {
           since: unixTimeNowInSeconds() - 5 * 60,
           authors: [process.env.LISTEN_PUBKEY as string],
-          kinds: [1, 3, 5, 0],
+          kinds: [1, 7, 5, 0],
         },
         { closeOnEose: false },
       )
