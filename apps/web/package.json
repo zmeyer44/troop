@@ -80,6 +80,7 @@
     "react-markdown": "^9.0.1",
     "remark-gfm": "^4.0.0",
     "satori": "^0.10.13",
+    "secp256k1": "link:@noble/curves/secp256k1",
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.3.0",
     "tailwind-scrollbar": "^3.1.0",
