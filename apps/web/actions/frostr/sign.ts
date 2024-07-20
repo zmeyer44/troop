@@ -34,10 +34,21 @@ export async function bunkerSign({
     participantIndexes,
   );
   return {
-    bunkerSignature: sBunker.toString(16),
+    bunkerSignature: bigIntToHex(sBunker),
     bunkerNonceCommitmentPair: bunkerNonceCommitmentPair.map((c) => [
       c.x!.toString(16),
       c.y!.toString(16),
     ]) as [[string, string], [string, string]],
   };
+}
+
+function bigIntToHex(bigIntValue: bigint): string {
+  if (bigIntValue >= 0n) {
+    return bigIntValue.toString(16);
+  } else {
+    // For negative numbers, we need to use two's complement
+    const bits = bigIntValue.toString(2).length;
+    const maxBigInt = 2n ** BigInt(bits) - 1n;
+    return ((maxBigInt + bigIntValue + 1n) & maxBigInt).toString(16);
+  }
 }
