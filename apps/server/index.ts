@@ -6,11 +6,12 @@ import { sleep, unixTimeNowInSeconds } from "@repo/utils";
 import type { Event, Relay } from "nostr-tools";
 import { repeatEvent } from "./src/repeater";
 const RELAYS = [
+  "wss://relay.nostr.band",
   "wss://relay.damus.io",
   "wss://nos.lol",
   "wss://nostr.wine",
   "wss://nostr.mom",
-  "wss://relay.nostr.band",
+  "wss://e.nos.lol",
 ];
 async function main() {
   try {
