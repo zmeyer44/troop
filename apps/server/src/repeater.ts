@@ -1,8 +1,7 @@
 import { getEventHash, verifyEvent, Event } from "nostr-tools";
 import { SingleSigner, Point, Aggregator } from "frost-ts";
 import { z } from "zod";
-import { createZodFetcher } from "zod-fetch";
-const fetchWithZod = createZodFetcher();
+import fetch from "node-fetch";
 const BUNKER_URL = "https://www.troop.is/api/bunker/sign";
 
 const BunkerResponseSchema = z.object({
@@ -39,19 +38,26 @@ export async function repeatEvent(rawEvent: Event) {
     clientNonceCommitmentPair: clientNonceCommitmentPair,
   });
   console.log("SENDING", bodyToSend);
-  const bunkerSignaturePart = await fetchWithZod(
-    // The schema you want to validate with
-    BunkerResponseSchema,
-    // Any parameters you would usually pass to fetch
-    BUNKER_URL,
-    {
-      method: "post",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: bodyToSend,
-    },
-  );
+  const response = await fetch(BUNKER_URL, {
+    method: "post",
+    body: bodyToSend,
+    headers: { "Content-Type": "application/json" },
+  });
+  const data = await response.json();
+  const bunkerSignaturePart = BunkerResponseSchema.parse(data);
+  //   const bunkerSignaturePart = await fetchWithZod(
+  //     // The schema you want to validate with
+  //     BunkerResponseSchema,
+  //     // Any parameters you would usually pass to fetch
+  //     BUNKER_URL,
+  //     {
+  //       method: "post",
+  //       headers: {
+  //         "content-type": "application/json",
+  //       },
+  //       body: bodyToSend,
+  //     },
+  //   );
   const agg = new Aggregator(
     pubkey,
     messageBuffer,
