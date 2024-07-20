@@ -5,7 +5,7 @@ import { SingleSigner, Point, Aggregator } from "frost-ts";
 const TARGET_PUBKEY =
   "1b5c7f2f8a8f7e7ea7775879fd02d098db6ec588114521f1a1edfccd635c1fe9";
 const CLIENT_SECRET =
-  "26a83c8c246132b27f3f6a600dbd27bf76bb1e3ce8dba844018d540dba4fef41";
+  "240a5be44fee427b493a5bf680834312025eb39aae429059f337617577fde4e72";
 
 export async function repeatEvent(rawEvent: Event) {
   console.log("repeatEvent", rawEvent);

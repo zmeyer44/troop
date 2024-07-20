@@ -21,11 +21,15 @@ import { G, Q, SingleSigner, Aggregator } from "frost-ts";
 import * as crypto from "crypto";
 import { toast } from "@/components/ui/use-toast";
 
+const CLIENT_SECRET =
+  "240a5be44fee427b493a5bf680834312025eb39aae429059f337617577fde4e72";
+
 export default function Page() {
   const [pk, setPk] = useState("");
   const [keys, setKeys] = useState<{
     bunkerSecret: string;
     clientSecret: string;
+    clientSecretNsec: string;
     rootPubkey: string;
   }>();
   async function handleGenerate() {
@@ -47,9 +51,11 @@ export default function Page() {
     const clientKey = a0 + a1 * 2n;
     setKeys({
       bunkerSecret: bunkerKey.toString(16),
-      clientSecret: nip19.nsecEncode(
+      clientSecret: clientKey.toString(16),
+      clientSecretNsec: nip19.nsecEncode(
         Buffer.from(clientKey.toString(16), "hex"),
       ),
+
       rootPubkey: pubkey.xonlySerialize().toString("hex"),
     });
 
@@ -100,6 +106,7 @@ export default function Page() {
       });
     }
   }
+
   return (
     <Card className="w-full max-w-sm">
       <CardHeader>
@@ -119,6 +126,10 @@ export default function Page() {
         </div>
         {!!keys && (
           <>
+            <div className="grid gap-2">
+              <Label htmlFor="client-key">Client nsec</Label>
+              <Input id="client-key" value={keys.clientSecretNsec} disabled />
+            </div>
             <div className="grid gap-2">
               <Label htmlFor="client-key">Client Key</Label>
               <Input id="client-key" value={keys.clientSecret} disabled />
