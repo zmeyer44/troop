@@ -13,7 +13,8 @@ const BodySchema = z.object({
 
 interface IParams {}
 async function handler(req: Request, { params }: { params: IParams }) {
-  const parsedBody = BodySchema.parse(req.body);
+  const bodyJson = await req.json();
+  const parsedBody = BodySchema.parse(bodyJson);
   const { bunkerNonceCommitmentPair, bunkerSignature } =
     await bunkerSign(parsedBody);
 
