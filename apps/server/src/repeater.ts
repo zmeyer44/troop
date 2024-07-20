@@ -33,23 +33,16 @@ export async function repeatEvent(rawEvent: Event) {
     c.x!.toString(16),
     c.y!.toString(16),
   ]) as [[string, string], [string, string]];
-  const bodyToSend = JSON.stringify({
+  const body = {
     eventHash: eventHash,
     clientNonceCommitmentPair: clientNonceCommitmentPair,
+  };
+  const response = await axios.post(BUNKER_URL, body, {
+    headers: { "Content-Type": "application/json" },
   });
-  console.log("SENDING", bodyToSend);
-  const response = await axios.post(
-    BUNKER_URL,
-    {
-      eventHash: eventHash,
-      clientNonceCommitmentPair: clientNonceCommitmentPair,
-    },
-    {
-      headers: { "Content-Type": "application/json" },
-    },
-  );
 
   const bunkerSignaturePart = BunkerResponseSchema.parse(response.data);
+  console.log("Received", bunkerSignaturePart);
   //   const bunkerSignaturePart = await fetchWithZod(
   //     // The schema you want to validate with
   //     BunkerResponseSchema,
@@ -91,7 +84,7 @@ export async function repeatEvent(rawEvent: Event) {
     id: eventHash,
     sig: hexSig,
   };
-
+  console.log("Event to publish", eventToPublish);
   const validEvent = verifyEvent(eventToPublish);
   console.log("IS valid", validEvent);
   if (validEvent) {
