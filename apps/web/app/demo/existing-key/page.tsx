@@ -17,13 +17,21 @@ import { BsFillShieldLockFill } from "react-icons/bs";
 import { client } from "@passwordless-id/webauthn";
 import { getChallenge } from "@/actions/broker";
 import { nip19, getEventHash, verifyEvent } from "nostr-tools";
-import { G, Q, SingleSigner, Aggregator } from "frost-ts";
+import { G, Q, SingleSigner, Aggregator, Point } from "frost-ts";
 import * as crypto from "crypto";
 import { toast } from "@/components/ui/use-toast";
+import { createZodFetcher } from "zod-fetch";
 
-const CLIENT_SECRET =
-  "240a5be44fee427b493a5bf680834312025eb39aae429059f337617577fde4e72";
+const fetchWithZod = createZodFetcher();
+const BUNKER_URL = "https://troop.is/api/bunker/sign";
 
+const BunkerResponseSchema = z.object({
+  bunkerSignature: z.string(),
+  bunkerNonceCommitmentPair: z.tuple([
+    z.tuple([z.string(), z.string()]),
+    z.tuple([z.string(), z.string()]),
+  ]),
+});
 export default function Page() {
   const [pk, setPk] = useState("");
   const [keys, setKeys] = useState<{
@@ -47,64 +55,16 @@ export default function Page() {
       nip19.npubEncode(pubkey.xonlySerialize().toString("hex")),
     );
     const a1 = BigInt(`0x${crypto.randomBytes(32).toString("hex")}`) % Q;
-    const bunkerKey = a0 + a1 * 1n;
-    const clientKey = a0 + a1 * 2n;
+    const _bunkerKey = a0 + a1 * 1n;
+    const _clientKey = a0 + a1 * 2n;
     setKeys({
-      bunkerSecret: bunkerKey.toString(16),
-      clientSecret: clientKey.toString(16),
+      bunkerSecret: _bunkerKey.toString(16),
+      clientSecret: _clientKey.toString(16),
       clientSecretNsec: nip19.nsecEncode(
-        Buffer.from(clientKey.toString(16), "hex"),
+        Buffer.from(_clientKey.toString(16), "hex"),
       ),
-
       rootPubkey: pubkey.xonlySerialize().toString("hex"),
     });
-
-    const participant_indexes = [1, 2];
-    const bunker = new SingleSigner(1, 2, 2, bunkerKey, pubkey);
-    const client = new SingleSigner(2, 2, 2, clientKey, pubkey);
-    const nostrEvent = {
-      pubkey: pubkey.xonlySerialize().toString("hex"),
-      content: "test",
-      kind: 1,
-      created_at: 1721253848,
-      tags: [],
-    };
-    const eventHash = getEventHash(nostrEvent);
-    const messageToSign = Buffer.from(eventHash, "hex");
-    bunker.generateNoncePair();
-    client.generateNoncePair();
-    const agg = new Aggregator(
-      pubkey,
-      messageToSign,
-      [bunker.nonceCommitmentPair!, client.nonceCommitmentPair!],
-      [1, 2],
-    );
-    const [message, nonceCommitmentPairs] = agg.signingInputs();
-    const sBunker = bunker.sign(
-      message,
-      nonceCommitmentPairs,
-      participant_indexes,
-    );
-    const sClient = client.sign(
-      message,
-      nonceCommitmentPairs,
-      participant_indexes,
-    );
-
-    // σ = (R, z)
-    const rawSig = agg.signature([sBunker, sClient]);
-    const iceBoxSig = rawSig.toString("hex");
-    const eventToPublish = {
-      ...nostrEvent,
-      id: eventHash,
-      sig: iceBoxSig,
-    };
-    const validEvent = verifyEvent(eventToPublish);
-    if (validEvent) {
-      toast({
-        title: "Valid event created!",
-      });
-    }
   }
 
   return (

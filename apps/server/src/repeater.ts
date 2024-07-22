@@ -42,20 +42,7 @@ export async function repeatEvent(rawEvent: Event) {
   });
 
   const bunkerSignaturePart = BunkerResponseSchema.parse(response.data);
-  console.log("Received", bunkerSignaturePart);
-  //   const bunkerSignaturePart = await fetchWithZod(
-  //     // The schema you want to validate with
-  //     BunkerResponseSchema,
-  //     // Any parameters you would usually pass to fetch
-  //     BUNKER_URL,
-  //     {
-  //       method: "post",
-  //       headers: {
-  //         "content-type": "application/json",
-  //       },
-  //       body: bodyToSend,
-  //     },
-  //   );
+
   const agg = new Aggregator(
     pubkey,
     messageBuffer,
