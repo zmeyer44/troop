@@ -15,6 +15,10 @@ module.exports = {
         source: "/event/:key",
         destination: "/events/:key",
       },
+      {
+        source: "/.well-known/nostr.json",
+        destination: "/api/well-known/nostr",
+      },
     ];
   },
 };
