@@ -1,5 +1,5 @@
 import { prisma } from "@repo/database";
-
+import { NextResponse } from "next/server";
 async function handler(req: Request) {
   const eventsReceived = await prisma.calendarEvent.findMany({
     where: {
@@ -18,6 +18,6 @@ async function handler(req: Request) {
       tags: true,
     },
   });
-  return eventsReceived;
+  return NextResponse.json(eventsReceived);
 }
 export { handler as GET };
