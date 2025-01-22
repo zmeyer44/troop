@@ -10,6 +10,7 @@ import {
 import { useState } from "react";
 import { prisma } from "@repo/database";
 import { getTag } from "@repo/utils";
+import { RegistrationButton } from "./RegistrationButton";
 type RegistrationSectionProps = {
   eventId: string;
 };
@@ -30,6 +31,7 @@ export default async function RegistrationSection({
       },
     }),
   ]);
+
   let state: null | "closed" | "waitlist" = null;
   const maxCapacity = getTag(event.tags as string[][], "max-capacity", 1);
   if (maxCapacity && rsvps.length >= parseInt(maxCapacity)) {
@@ -90,7 +92,7 @@ export default async function RegistrationSection({
           </p>
         </div>
         <div className="mt-4 text-center text-sm">
-          <Button className="w-full font-semibold">Register</Button>
+          <RegistrationButton />
         </div>
       </CardContent>
     </Card>

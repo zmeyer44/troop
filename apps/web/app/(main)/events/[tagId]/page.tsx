@@ -18,7 +18,7 @@ import PresentedBySection, {
   CalendarLink,
 } from "./components/PresentedBySection";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import RegistrationSection from "./components/Registration";
+import RegistrationSection from "./components/registration";
 
 type PageProps = {
   params: {
