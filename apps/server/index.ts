@@ -21,13 +21,22 @@ const RELAYS = [
   "wss://nostr.mom",
   "wss://e.nos.lol",
 ];
+function bigIntToUint8Array(bigInt: bigint) {
+  const hex = bigInt.toString(16).padStart(2, "0");
+  return new Uint8Array(
+    Array.from(hex.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16))),
+  );
+}
 async function main() {
   try {
     const app: Application = express();
     const PORT = process.env.PORT || 8080;
 
     const keyMasterPrivateKey = process.env.KEY_MASTER_PRIVATE_KEY as string;
-    const keyMasterPubkey = getPublicKey(Buffer.from(keyMasterPrivateKey));
+    const keyMasterKey = BigInt(`0x${keyMasterPrivateKey}`);
+    const keyMasterPubkey = getPublicKey(
+      Buffer.from(bigIntToUint8Array(keyMasterKey)),
+    );
 
     app.get("/", (req: Request, res: Response) => {
       res.send("Express + TypeScript Server  ss");
