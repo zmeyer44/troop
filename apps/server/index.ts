@@ -10,7 +10,7 @@ import NDK, {
 } from "@nostr-dev-kit/ndk";
 import { sleep, unixTimeNowInSeconds } from "@repo/utils";
 import type { Event, Relay } from "nostr-tools";
-import { getPublicKey, nip19 } from "nostr-tools";
+import { nip19 } from "nostr-tools";
 import { repeatEvent } from "./src/repeater";
 import axios from "axios";
 const RELAYS = [
@@ -21,22 +21,15 @@ const RELAYS = [
   "wss://nostr.mom",
   "wss://e.nos.lol",
 ];
-function bigIntToUint8Array(bigInt: bigint) {
-  const hex = bigInt.toString(16).padStart(2, "0");
-  return new Uint8Array(
-    Array.from(hex.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16))),
-  );
-}
+
 async function main() {
   try {
     const app: Application = express();
     const PORT = process.env.PORT || 8080;
 
     const keyMasterPrivateKey = process.env.KEY_MASTER_PRIVATE_KEY as string;
-    const keyMasterKey = BigInt(`0x${keyMasterPrivateKey}`);
-    const keyMasterPubkey = getPublicKey(
-      Buffer.from(bigIntToUint8Array(keyMasterKey)),
-    );
+    const keyMaster = new NDKPrivateKeySigner(keyMasterPrivateKey);
+    const keyMasterPubkey = (await keyMaster.user()).pubkey;
 
     app.get("/", (req: Request, res: Response) => {
       res.send("Express + TypeScript Server  ss");
@@ -106,7 +99,6 @@ async function main() {
           onBrokerEvent(event, event?.relay?.url);
         }
       });
-    const keyMaster = new NDKPrivateKeySigner(keyMasterPrivateKey);
     const keysStore = await ndk
       .subscribe(
         {
