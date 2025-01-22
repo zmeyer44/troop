@@ -199,10 +199,12 @@ async function main() {
         console.log("processKeyMasterLoop Found");
         const event = keyMasterEventsToProcess.pop();
         if (!event) return;
+        console.log("Event", event);
         const user = new NDKUser({
           pubkey: event.pubkey,
         });
         const userProfile = await user.fetchProfile();
+        console.log("userProfile", userProfile);
         const amount = Math.floor(Math.random() * 10) + 1;
         const npub = nip19.npubEncode(event.pubkey);
         const body = {
@@ -213,9 +215,11 @@ async function main() {
           amount: amount,
           notes: `Event ref: ${event.id}`,
         };
+        console.log("Body", body);
         const response = await axios.post(KEY_ALLOCATION_URL, body, {
           headers: { "Content-Type": "application/json" },
         });
+        console.log("Response", response);
         const tags: NDKTag[] = [
           ["e", event.id, "", "root"],
           ["p", event.pubkey],
