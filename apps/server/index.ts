@@ -20,6 +20,7 @@ const RELAYS = [
   "wss://nostr.wine",
   "wss://nostr.mom",
   "wss://e.nos.lol",
+  "wss://relay.primal.net",
 ];
 
 async function main() {
