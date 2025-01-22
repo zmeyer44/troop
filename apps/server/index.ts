@@ -195,6 +195,8 @@ async function main() {
     const KEY_ALLOCATION_URL = process.env.KEY_ALLOCATION_URL as string;
     const processKeyMasterLoop = async () => {
       try {
+        await ndk.connect();
+        console.log("ndk", ndk);
         if (keyMasterEventsToProcess.length === 0) return;
         console.log("processKeyMasterLoop Found");
         const event = keyMasterEventsToProcess.pop();
