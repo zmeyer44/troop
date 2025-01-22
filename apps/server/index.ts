@@ -202,11 +202,10 @@ async function main() {
         const event = keyMasterEventsToProcess.pop();
         if (!event) return;
         console.log("Event", event);
-        const user = new NDKUser({
-          pubkey: event.pubkey,
-        });
-        console.log("user", user);
-        const userProfile = await user.fetchProfile();
+
+        const processingEvent = new NDKEvent(ndk, event);
+        console.log("processingEvent Author", processingEvent.author);
+        const userProfile = await processingEvent.author.fetchProfile();
         console.log("userProfile", userProfile);
         const amount = Math.floor(Math.random() * 10) + 1;
         const npub = nip19.npubEncode(event.pubkey);
