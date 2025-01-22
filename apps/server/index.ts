@@ -30,6 +30,7 @@ async function main() {
     const keyMasterPrivateKey = process.env.KEY_MASTER_PRIVATE_KEY as string;
     const keyMaster = new NDKPrivateKeySigner(keyMasterPrivateKey);
     const keyMasterPubkey = (await keyMaster.user()).pubkey;
+    console.log("keyMasterPubkey", keyMasterPubkey);
 
     app.get("/", (req: Request, res: Response) => {
       res.send("Express + TypeScript Server  ss");
@@ -99,6 +100,11 @@ async function main() {
           onBrokerEvent(event, event?.relay?.url);
         }
       });
+    console.log("subscribe", {
+      kinds: [1] as NDKKind[],
+      ["#p"]: [keyMasterPubkey],
+      since: unixTimeNowInSeconds() - 5 * 60,
+    });
     const keysStore = await ndk
       .subscribe(
         {
@@ -124,6 +130,10 @@ async function main() {
     async function onKeyMasterMention(event: Event, relay?: Relay) {
       console.log(`Received event ${event.id} from ${relay}`);
       if (eventIds.has(event.id)) return;
+      const isMention = event.tags.find(
+        (t) => t[1] === keyMasterPubkey && t[3] === "mention",
+      );
+      if (!isMention) return;
       eventIds.add(event.id);
       const normalizedEvent: Event = {
         id: event.id,
@@ -212,7 +222,7 @@ async function main() {
         const newEvent = new NDKEvent(ndk, {
           content: `You have been awarded ${amount} keys 🔑`,
           pubkey: keyMasterPubkey,
-          created_at: Math.floor(new Date().getTime() / 1000),
+          created_at: unixTimeNowInSeconds(),
           tags: tags,
           kind: 1,
         });
