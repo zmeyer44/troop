@@ -203,9 +203,7 @@ async function main() {
         const event = keyMasterEventsToProcess.pop();
         if (!event) return;
         console.log("Event", event);
-
         const processingEvent = new NDKEvent(ndk, event);
-        console.log("processingEvent Author", processingEvent.author);
         const userProfile = await processingEvent.author.fetchProfile();
         console.log("userProfile", userProfile);
         const amount = Math.floor(Math.random() * 10) + 1;
@@ -222,7 +220,7 @@ async function main() {
         const response = await axios.post(KEY_ALLOCATION_URL, body, {
           headers: { "Content-Type": "application/json" },
         });
-        console.log("Response", response);
+        console.log("Response", response.data);
         const tags: NDKTag[] = [
           ["e", event.id, "", "root"],
           ["p", event.pubkey],
@@ -234,8 +232,9 @@ async function main() {
           tags: tags,
           kind: 1,
         });
-        newEvent.sign(keyMaster);
-        newEvent.publish();
+
+        await newEvent.sign(keyMaster);
+        await newEvent.publish();
       } catch (err) {
         console.error("processKeyMasterLoop error", JSON.stringify(err));
       }
