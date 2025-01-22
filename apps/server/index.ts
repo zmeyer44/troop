@@ -203,6 +203,7 @@ async function main() {
         const user = new NDKUser({
           pubkey: event.pubkey,
         });
+        console.log("user", user);
         const userProfile = await user.fetchProfile();
         console.log("userProfile", userProfile);
         const amount = Math.floor(Math.random() * 10) + 1;
